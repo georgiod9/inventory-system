@@ -32,6 +32,8 @@ export default function CreateProduct() {
     const handleFormAppearance = (event) => {
         const getOption = event.target.value;
         setProductType(getOption)
+        setInputs(values => ({...values, ["type"]: getOption}));
+        console.log(inputs);
     }
 
     return (
@@ -84,9 +86,6 @@ export default function CreateProduct() {
                                     </select>
                                 </td>
                             </tr>
-
-
-
 
 
                             {productType === 'form_dvd' && (
