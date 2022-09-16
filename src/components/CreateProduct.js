@@ -9,10 +9,9 @@ export default function CreateProduct() {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        //console.log("SUBMITTING: ", event);
-        
+        //console.log("Event is: ", event.target);
 
-        axios.post('http://localhost:80/api/product/save', inputs)
+        axios.post('http://localhost:80/api/product/save', [inputs, attributes, attributeName])
             .then(function(response) {
                 console.log(response.data);
                 navigate('/');
@@ -22,10 +21,32 @@ export default function CreateProduct() {
     const handleChange = (event) => {
         //console.log("Event Name: ", event.target.name)
         //console.log("Event Value: ", event.target.value)
+        //console.log("handleChange event: ", event);
+
         const name = event.target.name;
         const value = event.target.value;
         setInputs(values => ({...values, [name]: value}));
         console.log(inputs)
+    }
+
+    const [attributes, setAttributes] = useState([]);
+    const [attributeName, setAttributeName] = useState([]);
+
+    const handleAttributes = (event) => {
+        //console.log("Attribute event: ", event);
+        //console.log("Attribute count: ", attributeCount);
+        const attrName = event.target.name;
+        const attrValue = event.target.value;
+        const attrId = event.target.id;
+        console.log("attrID: ",attrId);
+
+        console.log("attrName: ", attrName);
+        console.log("attrvalue: ", attrValue);
+
+        setAttributeName(values => ({...values, [attrId]: attrName}));
+        setAttributes(values => ({...values, [attrId]: attrValue}));
+        console.log("Attribute Name: ", attributeName);
+        console.log("Attributes: ", attributes);
     }
 
     const [productType, setProductType] = useState('no_selection')
@@ -80,26 +101,26 @@ export default function CreateProduct() {
                                 <td>
                                     <select onChange={(e) => (handleFormAppearance(e))} id="myselect" defaultValue="select">
                                         <option value="no_selection" >Select Product Type</option>
-                                        <option value="form_dvd">DVD</option>
-                                        <option value="form_furniture">Furniture</option>
-                                        <option value="form_book">Book</option>
+                                        <option value="dvd">DVD</option>
+                                        <option value="furniture">Furniture</option>
+                                        <option value="book">Book</option>
                                     </select>
                                 </td>
                             </tr>
 
 
-                            {productType === 'form_dvd' && (
+                            {productType === 'dvd' && (
                                 <tr>
                                     <th>
                                         <label>Size (MB):</label>
                                     </th>
                                     <td>
-                                        <input type="text" name="size" onChange={handleChange} />
+                                        <input id="0" type="text" name="size" onChange={handleAttributes} />
                                     </td>
                                 </tr>
                             )}
 
-                            {productType === 'form_furniture' && (
+                            {productType === 'furniture' && (
                                 <>
 
                                     <tr>
@@ -107,7 +128,7 @@ export default function CreateProduct() {
                                             <label>Height (cm):</label>
                                         </th>
                                         <td>
-                                            <input type="text" name="height" onChange={handleChange} />
+                                            <input id="0" type="text" name="height" onChange={handleAttributes} />
                                         </td>
                                     </tr>
                                     <tr>
@@ -115,7 +136,7 @@ export default function CreateProduct() {
                                             <label>Width (cm):</label>
                                         </th>
                                         <td>
-                                            <input type="text" name="width" onChange={handleChange} />
+                                            <input id="1" type="text" name="width" onChange={handleAttributes} />
                                         </td>
                                     </tr>
                                     <tr>
@@ -123,7 +144,7 @@ export default function CreateProduct() {
                                             <label>Length (cm):</label>
                                         </th>
                                         <td>
-                                            <input type="text" name="length" onChange={handleChange} />
+                                            <input id="2" type="text" name="length" onChange={handleAttributes} />
                                         </td>
                                     </tr>
                                 </>
@@ -131,13 +152,13 @@ export default function CreateProduct() {
 
                             )}
 
-                            {productType === 'form_book' && (
+                            {productType === 'book' && (
                                 <tr>
                                     <th>
                                         <label>Weight (kg):</label>
                                     </th>
                                     <td>
-                                        <input type="text" name="weight" onChange={handleChange} />
+                                        <input id="0" type="text" name="weight" onChange={handleAttributes} />
                                     </td>
                                 </tr>
                             )}
@@ -149,17 +170,17 @@ export default function CreateProduct() {
                             <p>Choose product type to enter additional details.</p>
                         </div>
                     )}
-                    {productType === 'form_dvd' && (
+                    {productType === 'dvd' && (
                         <div>
                             <p>Disc size required*</p>
                         </div>
                     )}
-                    {productType === 'form_furniture' && (
+                    {productType === 'furniture' && (
                         <div>
                             <p>Furniture dimensions required as HxWxL*</p>
                         </div>
                     )}
-                    {productType === 'form_book' && (
+                    {productType === 'book' && (
                         <div>
                             <p>Book weight required*</p>
                         </div>
