@@ -1,5 +1,11 @@
+import ItemCard from './ItemCard';
+
 export default function ListProduct() {
     return (
-        <h1>List Product</h1>
+        <div>
+            <h1>Product List</h1>
+            <ItemCard/>
+        </div>
+        
     );
   }

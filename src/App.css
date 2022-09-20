@@ -69,3 +69,12 @@ body {
 .productTypeForm {
   
 }
+
+.item-card {
+  width: 10vw;
+  height: 7.5vw;
+  padding: 20px;
+  border: 1px solid black;
+
+}
+

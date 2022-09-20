@@ -204,14 +204,14 @@ function handlePostRequest($msg, $iObj, $conn){
     } else {
         $response = ['status' => 0, 'message' => 'Failed to add product. '];
     }
-    echo json_encode($response) . PHP_EOL;
-    echo "Wrote to product table: " . json_encode($iObj) . PHP_EOL;
+    echo json_encode($response) . PHP_EOL . PHP_EOL;
+    echo "Wrote to product table: " . json_encode($iObj) . PHP_EOL . PHP_EOL;
 
     $product_id = getProductId($iObj, $conn);
     
     echo "2b). To Write item attributes to product_attribute table: " . PHP_EOL;
-    #$prod_attribute = new ProductAttribute($iObj);
-    echo "Where product id is:: " . $product_id . PHP_EOL . PHP_EOL;
+
+    echo "     Where product id is: " . $product_id . PHP_EOL . PHP_EOL;
     
     
     $attributesNameList = $iObj->attributeNameList; 
@@ -220,8 +220,8 @@ function handlePostRequest($msg, $iObj, $conn){
     $requiredAttributesId = array();
     
 
+    #Get the needed attribute_type_id from the database to use them as FK
     for ($i=0; $i < $attributeCount; $i++) { 
-        echo "Dealing with: " . $attributesNameList[$i] . PHP_EOL;
         $sql = "SELECT attribute_type_id 
             FROM `product_attribute_type` 
             WHERE attribute_type_name = :target_attribute";
@@ -238,13 +238,15 @@ function handlePostRequest($msg, $iObj, $conn){
         echo "Matched with database attribute type: " . json_encode($requiredAttributesId[$i]) . PHP_EOL;
     }
 
+    #extract attributes names list ID to an array
     $fetchAttributes = array();
     foreach ($requiredAttributesId as $key => $value) {
         $fetchAttributes[$key] = $value['attribute_type_id'];
     }
 
-    echo '%%%%#Final attribute list looks LIEK: ' . json_encode($fetchAttributes) . PHP_EOL;
+    echo PHP_EOL . 'Final attribute list looks like: ' . json_encode($fetchAttributes) . PHP_EOL . PHP_EOL;
     
+    #execute INSERT sql command as many times as there are attributes
     foreach ($iObj->values as $key => $value) {
         $sql = 
         "INSERT INTO `product_attribute`(`product_attribute_id`, `attribute_type_id`, `product_id`, `value`) 
@@ -261,7 +263,6 @@ function handlePostRequest($msg, $iObj, $conn){
         } else {
             $response = ['status' => 0, 'message' => 'Failed to add product. '];
         }
-
     }
     
     #$stmt->bindParam(':target_attribute', )
@@ -345,7 +346,6 @@ switch ($method) {
         #Parse REST data.
         $message = json_decode( file_get_contents('php://input') );
         $product = $message[0];
-        echo "Message received from frontend: " . json_encode($message) . PHP_EOL;
         echo "Product is as: " . json_encode($product) . PHP_EOL;
 
         $attributes = $message[1];
@@ -360,9 +360,6 @@ switch ($method) {
 
         #Handle the POST request
         handlePostRequest($message, $itemObj, $conn);
-
-
-
 
 
         echo "1.Received product with following inputs: " . json_encode($product) . PHP_EOL . PHP_EOL;
