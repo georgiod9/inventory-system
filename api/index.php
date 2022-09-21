@@ -5,7 +5,7 @@ header('Access-Control-Allow-Origin: *');
 header("Access-Control-Allow-Headers: *");
 
 include 'DbConnect.php';
-echo "STARTING..." . PHP_EOL;
+#echo "STARTING..." . PHP_EOL;
 
 
 $GLOBALS['attribute_type_id'] = array(
@@ -321,8 +321,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case "GET":
-        echo "Requesting GET method." . PHP_EOL;
-        $sql = "SELECT * FROM books";
+        #echo "Requesting GET method." . PHP_EOL;
+        $sql = "SELECT * FROM product";
         $path = explode('/', $_SERVER['REQUEST_URI']);
         if(isset($path[3]) && is_numeric($path[3])) {
             $sql .= " WHERE id = :id";
