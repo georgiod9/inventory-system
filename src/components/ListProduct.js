@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ItemCard from './ItemCard';
+import './Grid.css';
 
 export default function ListProduct() {
     const [productList, setProductList] = useState([]);
@@ -26,7 +27,7 @@ export default function ListProduct() {
     return (
         <div>
             <h1>Product List</h1>
-            <ItemCard products={productList}/>
+            <ItemCard products={productList} />
         </div>
         
     );
