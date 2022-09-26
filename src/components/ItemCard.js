@@ -10,7 +10,7 @@ import { useEffect } from "react";
 
 export default function ItemCard(props) {
     const [products, setProducts] = useState([]);
-    console.log("STARTED REACT")
+    //console.log("STARTED REACT")
     useEffect(() => {
         // console.log("Received from parent: ", props['products']);
         props['products'] ? setProducts(props['products']) : console.log("waiting to fetch products from server...");

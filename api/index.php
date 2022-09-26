@@ -16,7 +16,8 @@ $GLOBALS['attribute_type_id'] = array(
     "length"
 );
 
-class Product {
+class Product
+{
     public $sku;
     public $name;
     public $price;
@@ -24,72 +25,83 @@ class Product {
 
     public $id;
 
-    function __construct($sku, $name, $price){
+    function __construct($sku, $name, $price)
+    {
         $this->sku = $sku;
         $this->name = $name;
         $this->price = $price;
     }
 
-    function set_sku($sku){
+    function set_sku($sku)
+    {
         $this->sku = $sku;
     }
 
-    function get_sku() {
+    function get_sku()
+    {
         return $this->sku;
     }
 
-    function set_name($name){
+    function set_name($name)
+    {
         $this->name = $name;
     }
 
-    function get_name() {
+    function get_name()
+    {
         return $this->name;
     }
 
-    function set_price($price){
+    function set_price($price)
+    {
         $this->price = $price;
     }
 
-    function get_price(){
+    function get_price()
+    {
         return $this->price;
     }
 }
 
-class ProductAttribute {
+class ProductAttribute
+{
     public $sku;
     public $name;
     public $price;
 
-    public function __construct($attributeArray){
+    public function __construct($attributeArray)
+    {
         $this->sku = $attributeArray['sku'];
         $this->name = $attributeArray['name'];
         $this->price = $attributeArray['price'];
     }
-
 }
 
-class ItemObj extends Product{
+class ItemObj extends Product
+{
     public $values = array();
     public $attributeNameList = array();
     public $attr = array();
 
-    public function __construct($msg){
+    public function __construct($msg)
+    {
         $this->sku = $msg->sku;
         $this->name = $msg->name;
         $this->price = $msg->price;
     }
 
-    public function constructItemModel($msg, $attrArray, $attrNameList) {
+    public function constructItemModel($msg, $attrArray, $attrNameList)
+    {
         $this->sku = $msg->sku;
         $this->name = $msg->name;
         $this->price = $msg->price;
 
         #foreach($attrArray as $key => $value) {
-            #$str = $attrNameList[$key] . ": " . $value;
-            #array_push($this->attr, $str);
-            #echo "*****Fetched object with attributes: " . json_encode($this->attr) . PHP_EOL;
+        #$str = $attrNameList[$key] . ": " . $value;
+        #array_push($this->attr, $str);
+        #echo "*****Fetched object with attributes: " . json_encode($this->attr) . PHP_EOL;
         #}
-        
+
         foreach ($attrArray as $key => $value) {
             array_push($this->values, $value);
         }
@@ -103,9 +115,10 @@ class ItemObj extends Product{
         #echo "The item has the following attributes: " . json_encode($this->attributeNameList) . PHP_EOL . PHP_EOL;
     }
 
-    public function setAttributes($attrArray) {
+    public function setAttributes($attrArray)
+    {
         sort($attrArray);
-        foreach($attrArray as $key => $value) {
+        foreach ($attrArray as $key => $value) {
             array_push($this->attr, $value);
         }
         #echo "*****Fetched object with attributes: " . json_encode($this->attr) . PHP_EOL;
@@ -114,43 +127,94 @@ class ItemObj extends Product{
 
 
 
-function getTypeId($string){
+function getTypeId($string)
+{
     echo "String to match is: " . $string . PHP_EOL;
     foreach ($GLOBALS['attribute_type_id'] as $key => $value) {
-       # if(!strcmp($value, $string)){
-            #echo "KEY is: " . $key . " Value is: " . $value . PHP_EOL;
-           # return $key;
-       # }
+        # if(!strcmp($value, $string)){
+        #echo "KEY is: " . $key . " Value is: " . $value . PHP_EOL;
+        # return $key;
+        # }
     }
 }
 
+function insertProduct($itemObject, $conn)
+{
+    try {
+        $sql = "INSERT INTO `product`(`product_id`, `sku`, `name`, `price`) VALUES (null, :sku, :name, :price);";
+
+        $stmt = $conn->prepare($sql);
+        #$conn->beginTransaction();
+
+        $stmt->bindParam(':sku', $itemObject->sku);
+        $stmt->bindParam(':name', $itemObject->name);
+        $stmt->bindParam(':price', $itemObject->price);
 
 
-function handlePostRequest($msg, $iObj, $conn){
+        if ($stmt->execute()) {
+            $response = ['status' => 1, 'message' => 'Product added successfully! '];
+        } else {
+            $response = ['status' => 0, 'message' => 'Failed to add product. '];
+        }
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $product_id = $conn->lastInsertId();
+
+        echo json_encode($response) . PHP_EOL;
+        echo "new method: " . json_encode($result) . PHP_EOL;
+
+        #$stmt = $conn->prepare($sql2);
+        #$conn->beginTransaction();
+        #$result = $conn->commit();
+
+
+        echo "resulting: " . json_encode($product_id) . PHP_EOL;
+
+        return $product_id;
+
+    } catch (\Throwable $e) {
+        #$conn->rollback();
+        throw $e;
+    }
+}
+
+function handlePostRequest($msg, $iObj, $conn)
+{
     echo "2. HANDLE POST REQUEST" . PHP_EOL;
 
-    #Write product in product table (product_id, sku, name, price)
-    $sql = "INSERT INTO `product`(`product_id`, `sku`, `name`, `price`) VALUES (null, :sku, :name, :price)";
-
     echo "2a). To Write Product with following details: " . $iObj->sku . " " . $iObj->name . " " . $iObj->price . PHP_EOL;
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':sku', $iObj->sku);
-    $stmt->bindParam(':name', $iObj->name);
-    $stmt->bindParam(':price', $iObj->price);
 
-    if($stmt->execute()) {
-        $response = ['status' => 1, 'message' => 'Product added successfully! '];
-    } else {
-        $response = ['status' => 0, 'message' => 'Failed to add product. '];
-    }
-    echo json_encode($response) . PHP_EOL . PHP_EOL;
-    echo "Wrote to product table: " . json_encode($iObj) . PHP_EOL . PHP_EOL;
+    $product_id = insertProduct($iObj, $conn);
 
-    $product_id = getProductId($iObj, $conn);
+
+
+    #Write product in product table (product_id, sku, name, price)
+
+    #echo "2a). To Write Product with following details: " . $iObj->sku . " " . $iObj->name . " " . $iObj->price . PHP_EOL;
+
+
+    #$stmt = $conn->prepare($sql);
+    #$stmt->bindParam(':sku', $iObj->sku);
+    #$stmt->bindParam(':name', $iObj->name);
+    #$stmt->bindParam(':price', $iObj->price);
+
+    #if($stmt->execute()) {
+    #    $response = ['status' => 1, 'message' => 'Product added successfully! '];
+    #} else {
+    #    $response = ['status' => 0, 'message' => 'Failed to add product. '];
+    #}
+
+
+    #echo json_encode($response) . PHP_EOL;
+    #$result = $stmt->fetch(PDO::FETCH_ASSOC);
+    #echo "New id is here:--->" . json_encode($result) . PHP_EOL . PHP_EOL;
+    #echo "Wrote to product table: " . json_encode($iObj) . PHP_EOL . PHP_EOL;
+
+    #$product_id = getProductId($iObj, $conn);
 
     echo "2b). To Write item attributes to product_attribute table: " . PHP_EOL;
 
-    echo "     Where product id is: " . $product_id . PHP_EOL . PHP_EOL;
+    #echo "     Where product id is: " . $product_id . PHP_EOL . PHP_EOL;
 
 
     $attributesNameList = $iObj->attributeNameList;
@@ -160,14 +224,14 @@ function handlePostRequest($msg, $iObj, $conn){
 
 
     #Get the needed attribute_type_id from the database to use them as FK
-    for ($i=0; $i < $attributeCount; $i++) {
+    for ($i = 0; $i < $attributeCount; $i++) {
         $sql = "SELECT attribute_type_id
             FROM `product_attribute_type`
             WHERE attribute_type_name = :target_attribute";
 
         $stmt = $conn->prepare($sql);
         $stmt->bindParam(':target_attribute', $attributesNameList[$i]);
-        if($stmt->execute()) {
+        if ($stmt->execute()) {
             $response = ['status' => 1, 'message' => 'Product added successfully! '];
         } else {
             $response = ['status' => 0, 'message' => 'Failed to add product. '];
@@ -188,7 +252,7 @@ function handlePostRequest($msg, $iObj, $conn){
     #execute INSERT sql command as many times as there are attributes
     foreach ($iObj->values as $key => $value) {
         $sql =
-        "INSERT INTO `product_attribute`(`product_attribute_id`, `attribute_type_id`, `product_id`, `value`)
+            "INSERT INTO `product_attribute`(`product_attribute_id`, `attribute_type_id`, `product_id`, `value`)
         VALUES (null, :attribute_type_id, :product_id, :value)";
 
         $stmt = $conn->prepare($sql);
@@ -196,25 +260,26 @@ function handlePostRequest($msg, $iObj, $conn){
         $stmt->bindParam(':product_id', $product_id);
         $stmt->bindParam(':value', $iObj->values[$key]);
 
-        if($stmt->execute()) {
+        if ($stmt->execute()) {
             $response = ['status' => 1, 'message' => 'Product added successfully! '];
             echo "Successfully added attribute_type_id " . $fetchAttributes[$key] . " at " . $product_id . PHP_EOL;
         } else {
             $response = ['status' => 0, 'message' => 'Failed to add product. '];
         }
     }
-
 }
 
-function handleGetRequest($iObj, $conn) {
-
+function handleGetRequest($iObj, $conn)
+{
 }
 
-function getProductId($itemObj, $conn){
+function getProductId($itemObj, $conn)
+{
     $sql = "SELECT * FROM `product` WHERE product_id = (SELECT COUNT(product_id) FROM product);";
+    #$sql = "SELECT * FROM `product` WHERE product_id = (SELECT COUNT(product_id) FROM product);";
     $stmt = $conn->prepare($sql);
 
-    if($stmt->execute()) {
+    if ($stmt->execute()) {
         $response = ['status' => 1, 'message' => 'Product added successfully! '];
     } else {
         $response = ['status' => 0, 'message' => 'Failed to add product. '];
@@ -225,11 +290,10 @@ function getProductId($itemObj, $conn){
     $prod_id = (int) $result["product_id"];
     echo "Fetched from products, ID: " . $prod_id . PHP_EOL;
     return $prod_id;
-
 }
 
 $objDb = new DbConnect;
-$conn = $objDb -> connect();
+$conn = $objDb->connect();
 
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -239,14 +303,14 @@ switch ($method) {
     case "GET":
         #echo "Requesting GET method." . PHP_EOL;
         $sql =
-        "SELECT product.product_id, product.name, product.sku, product.price, product_attribute.value, product_attribute_type.attribute_type_name
+            "SELECT product.product_id, product.name, product.sku, product.price, product_attribute.value, product_attribute_type.attribute_type_name
         FROM product
         INNER JOIN product_attribute ON product.product_id = product_attribute.product_id
         INNER JOIN product_attribute_type ON product_attribute_type.attribute_type_id = product_attribute.attribute_type_id
         ORDER BY `product`.`product_id` ASC;";
 
         $path = explode('/', $_SERVER['REQUEST_URI']);
-        if(isset($path[3]) && is_numeric($path[3])) {
+        if (isset($path[3]) && is_numeric($path[3])) {
             $sql .= " WHERE id = :id";
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':id', $path[3]);
@@ -257,7 +321,7 @@ switch ($method) {
             $stmt->execute();
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        ######echo json_encode($products);
+        #echo json_encode($products);
 
         #create array filled with item objects, each having attributes: (sku, name, price, attributeList=null)
         $fetchedItems = array();
@@ -275,7 +339,7 @@ switch ($method) {
 
         #Lince the database writes each attribute (h, w, l) on a separate row to allow dynamic product types
         #Loop through item array and combine attributes like H, W, L into one array attributeList = [Height: h, width: w, length: l]
-        
+
         $attributes = array();
         $attributesNameList = array();
         $streak = 0;
@@ -289,10 +353,10 @@ switch ($method) {
             $currentId = $value['product_id'];
             #echo "current = " . $value['product_id'] ;
 
-            if ($key != count($products) - 1){
+            if ($key != count($products) - 1) {
                 $nextId = $products[$key + 1]['product_id'];
                 #echo "previous = " . $previousId . " current = " . $value['product_id'] . "  next = " . $products[$key + 1]['product_id'] . " streak = " . $streak . PHP_EOL .PHP_EOL;
-            } 
+            }
 
             array_push($attributes, $value['value']);
             array_push($attributesNameList, $value['attribute_type_name']);
@@ -304,8 +368,7 @@ switch ($method) {
             if ($key != count($products)) {
                 if ($currentId != $nextId) {
                     $reset = true;
-                }
-                else{
+                } else {
                     $previousId = $products[$key - 1]['value'];
                     $reset = false;
                     $streak++;
@@ -314,8 +377,7 @@ switch ($method) {
                         $reset = true;
                     }
                 }
-
-            }    
+            }
 
             #echo "attributes->  " . json_encode($attributesNameList) . " " . json_encode($attributes) . PHP_EOL; 
             if ($reset) {
@@ -327,10 +389,9 @@ switch ($method) {
                 $attributesNameList = array();
                 $str = "";
                 $itemAttributes = array();
-                
+
                 #echo "*************************************************" . PHP_EOL;
             }
-        
         }
 
 
@@ -339,7 +400,7 @@ switch ($method) {
         #echo json_encode($itemsObjArray[$key]) . PHP_EOL;    
         #}
         echo json_encode($itemsObjArray);
-        
+
         #handleGetRequest($itemObj, $conn);
         break;
 
@@ -349,7 +410,7 @@ switch ($method) {
         echo "1. RECEIVE DATA FROM SERVER: " . PHP_EOL;
 
         #Parse REST data.
-        $message = json_decode( file_get_contents('php://input') );
+        $message = json_decode(file_get_contents('php://input'));
         $product = $message[0];
         echo "Product is as: " . json_encode($product) . PHP_EOL;
 
@@ -374,7 +435,7 @@ switch ($method) {
         #$item = new Product($product->sku, $product->name, $product->price, $product->type);
         #echo "Product objected created as: " . json_encode($item) . PHP_EOL . PHP_EOL;
 
-        echo "6.Match type resulting object: " . json_encode(matchType($product)) . PHP_EOL . PHP_EOL;
+        #echo "6.Match type resulting object: " . json_encode(matchType($product)) . PHP_EOL . PHP_EOL;
 
         echo "SKU: " . $product->sku . PHP_EOL;
         echo "Name: " . $product->name . PHP_EOL;
@@ -400,44 +461,3 @@ switch ($method) {
         echo "No request received." . PHP_EOL;
         break;
 }
-
-
-function matchType($message){
-    $product = new Product($message->sku, $message->name, $message->price, $message->type);
-
-    switch ($message->type) {
-        case 'form_dvd':
-            echo "2.Trying to set dvd size to: " . $message->size . PHP_EOL . PHP_EOL;
-
-            $dvd = new Dvd($product, $message->size);
-            echo  "3.A DVD has been registered as: " . json_encode($dvd) . PHP_EOL . PHP_EOL;
-            writeDvdToDb($dvd);
-            break;
-
-        case 'form_furniture':
-            #fillFurniture($product);
-            break;
-
-        case 'form_book':
-            #fillBook($product);
-            break;
-        default:
-            # code...
-            break;
-    }
-
-    return $product;
-}
-
-
-function writeDvdToDb($dvd){
-    #$product = createProduct($dvd);
-    #$product_attribute = new ProductAttribute($dvd);
-    $arr = array(
-        "150",
-        "200",
-        "300"
-    );
-    #$iObj = new ItemObj($dvd->get_type(), $arr);
-}
-
