@@ -61,6 +61,14 @@ class Product
     {
         return $this->price;
     }
+
+    function set_id($id){
+        $this->id = $id;
+    }
+
+    function get_id(){
+        return $this->id;
+    }
 }
 
 class ProductAttribute
@@ -88,6 +96,7 @@ class ItemObj extends Product
         $this->sku = $msg->sku;
         $this->name = $msg->name;
         $this->price = $msg->price;
+       
     }
 
     public function constructItemModel($msg, $attrArray, $attrNameList)
@@ -184,7 +193,10 @@ function handlePostRequest($msg, $iObj, $conn)
 
     echo "2a). To Write Product with following details: " . $iObj->sku . " " . $iObj->name . " " . $iObj->price . PHP_EOL;
 
+    #insert product into db table
+    #insertProduct function returns the product id, i.e. primary key
     $product_id = insertProduct($iObj, $conn);
+
 
 
 
@@ -332,12 +344,14 @@ switch ($method) {
             #echo "Created item object: " . json_encode($item) . PHP_EOL;
 
             $fetchedItems[$key] = new ItemObj($item);
+            $fetchedItems[$key]->set_id($value['product_id']);
+            #echo "Product id: " . json_encode($value['product_id']) . PHP_EOL;
             #echo "Pushed Object to fetchedItems array: " . json_encode($fetchedItems[$key]) . PHP_EOL;
         }
         #echo "Item Object Array: " . json_encode($fetchedItems) . PHP_EOL;
 
 
-        #Lince the database writes each attribute (h, w, l) on a separate row to allow dynamic product types
+        #Since the database writes each attribute (h, w, l) on a separate row to allow dynamic product types
         #Loop through item array and combine attributes like H, W, L into one array attributeList = [Height: h, width: w, length: l]
 
         $attributes = array();
